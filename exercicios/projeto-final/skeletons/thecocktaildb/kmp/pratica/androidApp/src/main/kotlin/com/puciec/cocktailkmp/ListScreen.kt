@@ -50,7 +50,7 @@ fun ListScreen(api: TheCocktailDbApi, onSelect: (String) -> Unit) {
         // TODO 1 (feature 1 — lista): chamar api.fetchList(), guardar em `all`.
         // Tratar erro em `error` (try/catch) e marcar `loading = false` no final.
         try {
-            all = api.fetchList()
+            all = api.fetchList().sortedBy { it.idDrink }
         } catch (e: Exception) {
             error = e.message
         } finally {
@@ -61,7 +61,12 @@ fun ListScreen(api: TheCocktailDbApi, onSelect: (String) -> Unit) {
     // TODO 3 (feature 3 — busca) + TODO 4 (feature 4 — categoria): filtrar
     // `all` por `categoryNames` (quando não-nulo, `names.contains(it.strDrink)`)
     // e por `searchText` (substring case-insensitive do `strDrink`).
-    val filtered = all.filter { it.strDrink.contains(searchText, ignoreCase = true) }
+    val filtered = all.filter { drink ->
+        val matchesNames = categoryNames.isNullOrEmpty() || categoryNames!!.contains(drink.strDrink)
+        val matchesSearch = drink.strDrink.contains(searchText, ignoreCase = true)
+
+        matchesNames && matchesSearch
+    }
 
     if (loading) {
         Box(
@@ -136,10 +141,11 @@ fun ListScreen(api: TheCocktailDbApi, onSelect: (String) -> Unit) {
         // é null, chamar api.fetchNamesByCategory(apiCategory(category)) e
         // guardar em `categoryNames`.
         try {
-            all = if (selectedCategory == null) {
-                api.fetchList()
+            categoryNames = if (selectedCategory != null) {
+                all = api.fetchList(apiCategory(selectedCategory!!))
+                api.fetchNamesByCategory(apiCategory(selectedCategory!!))
             } else {
-                api.fetchList(apiCategory(selectedCategory!!))
+                null
             }
         } catch (e: Exception) {
             error = e.message

@@ -10,6 +10,5 @@ appId: com.puciec.cocktailkmp
     element:
       id: "item-card-11000"
     direction: DOWN
-    timeout: 50000
 - assertVisible:
     id: "item-card-11000"
